@@ -1,4 +1,7 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
+from todo.models import db
+from todo.models.todo import Todo
+from datetime import datetime
  
 api = Blueprint('api', __name__, url_prefix='/api/v1') 
 
@@ -20,13 +23,18 @@ def health():
 
 @api.route('/todos', methods=['GET'])
 def get_todos():
-    """Return the list of todo items"""
-    return jsonify([TEST_ITEM])
+    todos = Todo.query.all()
+    result = []
+    for todo in todos:
+        result.append(todo.to_dict())
+    return jsonify(result)
 
 @api.route('/todos/<int:todo_id>', methods=['GET'])
 def get_todo(todo_id):
-    """Return the details of a todo item"""
-    return jsonify(TEST_ITEM)
+    todo = Todo.query.get(todo_id)
+    if todo is None:
+        return jsonify({'error': 'Todo not found'}), 404
+    return jsonify(todo.to_dict())
 
 @api.route('/todos', methods=['POST'])
 def create_todo():
